@@ -2,14 +2,18 @@ from tkinter import *
 from random import *
 import pandas as pd
 
-database = pd.read_csv("data/french_words.csv")
-database_dict = database.to_dict(orient="records")
-card = choice(database_dict)
+try:
+    database_file = pd.read_csv("data/words_to_learn.csv")
+except FileNotFoundError:
+    database_file = pd.read_csv("data/french_words.csv")
+
+database = database_file.to_dict(orient="records")
+card = choice(database)
 
 
 def skip_card():
     global card, timer
-    card = choice(database_dict)
+    card = choice(database)
     canvas.itemconfig(card_look, image=card_front_img)
     canvas.itemconfig(language_info, text="French", fill="black")
     canvas.itemconfig(word, text=card["French"], fill="black")
@@ -19,8 +23,8 @@ def skip_card():
 
 def remove_card():
     global card, timer
-    database_dict.remove(card)
-    card = choice(database_dict)
+    database.remove(card)
+    card = choice(database)
     canvas.itemconfig(card_look, image=card_front_img)
     canvas.itemconfig(language_info, text="French", fill="black")
     canvas.itemconfig(word, text=card["French"], fill="black")
@@ -32,6 +36,12 @@ def flip_card():
     canvas.itemconfig(card_look, image=card_back_img)
     canvas.itemconfig(language_info, text="English", fill="white")
     canvas.itemconfig(word, text=card["English"], fill="white")
+
+
+def save():
+    df = pd.DataFrame(database)
+    df.to_csv("data/words_to_learn.csv", index=False)
+    window.destroy()
 
 
 window = Tk()
@@ -56,4 +66,5 @@ right_button.grid(column=1, row=1)
 
 timer = window.after(7000, flip_card)
 
+window.protocol("WM_DELETE_WINDOW", save)
 window.mainloop()
